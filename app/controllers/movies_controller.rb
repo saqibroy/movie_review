@@ -1,15 +1,27 @@
+
+require 'barby'
+require 'barby/barcode/ean_13'
+require 'barby/outputter/ascii_outputter'
+require 'barby/outputter/html_outputter'
 class MoviesController < ApplicationController
   before_action :set_movie, only: [:show, :edit, :update, :destroy]
   before_action :authenticate_user!, except: [:index, :show]
+  
   # GET /movies
   # GET /movies.json
   def index
-    @movies = Movie.all
+    if params[:search].present?
+      @movies= Movie.where(["title LIKE ?","%#{params[:search]}%"])
+      else
+      @movies = Movie.all
+    end
   end
 
   # GET /movies/1
   # GET /movies/1.json
   def show
+    @barcode = Barby::EAN13.new('012345678912')
+    @barcode_for_html = Barby::HtmlOutputter.new(@barcode)
     @reviews= @movie.reviews.all.order("created_at DESC")
     if @reviews.blank?
       @avg_rating= 0
